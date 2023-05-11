@@ -29,12 +29,13 @@ public class SecurityConfig {
 
 
                 // formLogin 과 basic 을 이용하지 않을으로써 기존 filter 의 역할을 사용하지 않을 것임.
-                // 여기서는 UsernammPasswordFilter 의 기본 필터 대신 custom filter 적용시킬 것.
-                // 그 이유는 authenticationManagerConfig 에서 설명하겠음.
+                // 여기서는 UsernamePasswordFilter 의 기본 필터 대신 custom filter 적용시킬 것.
+                // 그 이유는 JwtAuthenticationCustomFilter 에서 설명하겠음.
                 .and()
                 .formLogin().disable()
                 .httpBasic().disable()
-                .csrf().disable() // 일단 csrf 비활성화인데, 귀찮아서 해놓은것이라 함. 나중에 수정
+                .csrf().disable() // 일단 csrf 비활성화인데, 귀찮아서 해놓은것이라 함.
+                // 아마 customfilter 에서 OncePerRequestFilter 가 있기 때문에 csrf 공격을 막을 수 있을듯해서 그런 듯.
 //                .cors()
 
                 // AuthenticationManager 를 통해 기존 filter 대체

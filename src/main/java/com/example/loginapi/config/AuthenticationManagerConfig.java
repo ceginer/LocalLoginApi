@@ -1,5 +1,7 @@
 package com.example.loginapi.config;
 
+import com.example.loginapi.jwt.filter.JwtAuthenticationCustomFilter;
+import com.example.loginapi.jwt.provider.JwtAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
