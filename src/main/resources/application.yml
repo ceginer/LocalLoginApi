@@ -1,0 +1,6 @@
+jwt:
+  header: Authorization
+  secretKey: dGVzdGtleS1ob21lYnJld2NsdWItd2Vic2l0ZS1zZWNyZXRLZXk=
+  refreshKey: dGVzdGtleS1ob21lYnJld2NsdWItd2Vic2l0ZS1zZWNyZXRLZXk=
+  # secretKey : 'testkey-homebrewclub-website-secretKey' ? base64? ???? ?
+  ## ??? gitignore? ???, secretKey? ?? ?.

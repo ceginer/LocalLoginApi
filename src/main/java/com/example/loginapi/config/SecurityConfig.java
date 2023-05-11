@@ -24,9 +24,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                // 서버에서 session 허용 X
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
+                // 서버에서 session 허용 X -> stateless
 
                 // formLogin 과 basic 을 이용하지 않을으로써 기존 filter 의 역할을 사용하지 않을 것임.
                 // 여기서는 UsernamePasswordFilter 의 기본 필터 대신 custom filter 적용시킬 것.

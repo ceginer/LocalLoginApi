@@ -29,13 +29,17 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
 
     // mysql & jpa
-
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     //jwt
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
 
     // json 보내는 방식인 gson
 
-    //dto validation
+    //dto validation -> 추가해주기
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 }
 
 tasks.named('test') {
