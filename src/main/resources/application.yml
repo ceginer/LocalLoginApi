@@ -1,4 +1,0 @@
-jwt:
-  header: Authorization
-  secret:
-  token-validity-in-seconds: 86400

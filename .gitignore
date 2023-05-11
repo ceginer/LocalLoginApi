@@ -22,10 +22,11 @@ bin/
 *.iws
 *.iml
 *.ipr
-*.yml
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+appplication.yml
+
 
 ### NetBeans ###
 /nbproject/private/
@@ -38,4 +39,3 @@ out/
 .vscode/
 
 ### application.yml ###
-!**/src/main/resources/application.yml
