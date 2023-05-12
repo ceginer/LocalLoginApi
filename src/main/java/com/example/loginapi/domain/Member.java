@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -19,12 +20,15 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
 
+//    @Column(unique = true)
     private String email;
+
     private String name;
+
     @JsonIgnore
-    private String passwored;
+    private String password;
+
+    @CreationTimestamp
     private LocalDateTime regdate;
 
-
-    private String passwored;
 }

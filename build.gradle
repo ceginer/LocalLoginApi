@@ -28,17 +28,17 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 
-    // mysql & jpa
+    // mysql & jpa -> @CreationTimestamp jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    //jwt
+    //jwt -> Claim, Jwts 사용할 때 필요.
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
 
     // json 보내는 방식인 gson
 
-    //dto validation -> 추가해주기
+    //dto validation -> @Valid 에서 추가해주기
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 }
 
