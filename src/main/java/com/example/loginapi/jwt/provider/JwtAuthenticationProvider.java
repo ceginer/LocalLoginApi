@@ -2,6 +2,8 @@ package com.example.loginapi.jwt.provider;
 
 import com.example.loginapi.jwt.util.JwtTokenizer;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -59,37 +61,48 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     }
 
     public String createAccessToken(Authentication authentication){
-        createToken()
+        createToken();
+    }
+
+    public String createRefreshToken(Authentication authentication){
+        createToken();
     }
 
 
-    /**
-     * http 헤더로부터 bearer 토큰을 가져옴.
-     * @param req
-     * @return
-     */
-    public String resolveToken(HttpServletRequest req) {
-        String bearerToken = req.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null; // 아무것도 받지 못했을 때, ( header에 아무것도 없을 때 )
-    }
 
     /**
-     * 토큰을 검증
-     * @param token
-     * @return
+     * 토큰이 서버에서 발행했는지, 만료시간이 되었는지를 검증 (create 할 때 만료시간 만들기)
+     * @param (TokenString, secretkey)
+     * @return Claims
      */
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parser().setSigningKey(secret_key).parseClaimsJws(token);
-            return true;
-        } catch (JwtException e) {
-            // MalformedJwtException | ExpiredJwtException | IllegalArgumentException
-            throw new CustomException("Error on Token", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public Claims validateToken(String TokenString, byte[] secretkey) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(secretkey)
+                //서버의 Secretkey와 대조, 실패하면 SignatureException 발생
+                .build()
+                .parseClaimsJws(TokenString)// Jws 객체형태로 돌려줌 + 만료 검사 수행
+                // 만료일자 지나면 JwtException 발생
+                .getBody(); // Claims 객체 반환
+
+        // 여기까지 진행되면 아무 문제 없는 것이므로, return true;
+        return claims;
     }
+
+
+    public Claims validateAccessToken(String accessTokenString){
+        return validateToken(accessTokenString, accessSecret);
+    }
+    public Claims validateRefreshToken(String refreshTokenString){
+        return validateToken(refreshTokenString, refreshSecret);
+    }
+
+    public getToken(Claims claims){
+        String email = claims.getSubject();
+
+    }
+
+
+
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
