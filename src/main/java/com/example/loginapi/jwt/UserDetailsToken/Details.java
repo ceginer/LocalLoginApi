@@ -22,16 +22,17 @@ public class Details implements UserDetails {
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new Role("USER"));
         authorities.add(new SimpleGrantedAuthority("ADMIN"));
+        return authorities;
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return member.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return null;
+        return member.getName();.;
     }
 
     @Override

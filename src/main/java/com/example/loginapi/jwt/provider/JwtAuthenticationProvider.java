@@ -1,5 +1,7 @@
 package com.example.loginapi.jwt.provider;
 
+import com.example.loginapi.jwt.UserDetailsToken.Details;
+import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
 import com.example.loginapi.jwt.util.JwtTokenizer;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -10,8 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +28,7 @@ import java.util.Date;
 // -> 유저 ID 로부터 Token 얻기 (파싱하여 DB이용) ,
 
 @Component
-public class JwtAuthenticationProvider implements AuthenticationProvider {
+public class JwtAuthenticationProvider{
 
 //    private final JwtTokenizer jwtTokenizer;
 
@@ -37,7 +42,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     public final static Long REFRESH_TOKEN_EXPIRE_COUNT = 7 * 24 * 60 * 60 * 1000L; // 7 days
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private DetailsService userDetailsService;
 
     /**
      * 적절한 설정을 통해 토큰을 생성하여 반환
@@ -61,11 +66,12 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     }
 
     public String createAccessToken(Authentication authentication){
-        createToken();
+
+        return createToken(authentication);
     }
 
     public String createRefreshToken(Authentication authentication){
-        createToken();
+        return createToken();
     }
 
 
@@ -96,23 +102,13 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         return validateToken(refreshTokenString, refreshSecret);
     }
 
-    public getToken(Claims claims){
+    public UsernamePasswordAuthenticationToken getToken(Claims claims){
         String email = claims.getSubject();
-
+        String role = claims.get("role", String.class);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        UsernamePasswordAuthenticationToken token
+                = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        return token;
     }
 
-
-
-
-    @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        jwtTokenizer.createToken()
-
-        return null;
-    }
-
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return false;
-    }
 }

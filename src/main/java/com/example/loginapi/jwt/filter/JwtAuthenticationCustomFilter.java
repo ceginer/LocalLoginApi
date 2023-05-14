@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,12 +38,16 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
         if (accessTokenString != null){
             Claims claims = provider.validateAccessToken(accessTokenString); // 실패 시 에러 발생
             UsernamePasswordAuthenticationToken token = provider.getToken(claims);
-            Authentication authentication = provider.getAuthentication(accessTokenString);
+            // -> Manager.authenticate 기능을 모두 수행해버려서 authenticate 필요없음
+            // sub에 암호화된 데이터를 집어넣고, 복호화하는 코드를 넣어줄 수 있다.
+            //(여긴안한거)
+
+            // 인증정보가 SecurityContextHolder 에 저장되게 됨
+            SecurityContextHolder.getContext()
+                    .setAuthentication(token); // 현재 요청에서 언제든지 인증정보를 꺼낼 수 있도록 해준다.
         }
-    }
-
-
-
+        filterChain.doFilter(request, response);
+        }
 
 
     /**
