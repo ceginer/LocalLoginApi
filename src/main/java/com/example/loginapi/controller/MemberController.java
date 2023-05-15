@@ -8,6 +8,8 @@ import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
 import com.example.loginapi.jwt.provider.JwtAuthenticationProvider;
 import com.example.loginapi.repository.MemberRepository;
 import com.example.loginapi.service.MemberService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +21,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.http.HttpResponse;
 
 
 @RestController
@@ -37,9 +41,14 @@ public class MemberController {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
 
+        // 이미 존재하는 이메일인지 검증
+        if( memberService.IsPresentEmail(memberSignupDto.getEmail()) ){
+            return new ResponseEntity(HttpStatus.CONFLICT); // 에러 409, 이미 있는 이메일.
+        }
+
         Member member = new Member();
         member.setName(memberSignupDto.getName());
-        member.setEmail(memberSignupDto.getName());
+        member.setEmail(memberSignupDto.getEmail());
         member.setPassword(passwordEncoder.encode(memberSignupDto.getPassword()));
 
         Member saveMember = memberService.addMember(member);
@@ -61,16 +70,18 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid MemberLoginDto memberLoginDto, BindingResult bindingResult){
+    public ResponseEntity login(@RequestBody @Valid MemberLoginDto memberLoginDto, BindingResult bindingResult, HttpServletResponse response){
         if(bindingResult.hasErrors()){
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
+
         Member member = memberService.findByEmail(memberLoginDto.getEmail());
         // -> Service에서 따로 일치하는 email이 없을 경우 exception 발생
-        if(passwordEncoder.matches(memberLoginDto.getPassword(),member.getPassword())){
+        if(!passwordEncoder.matches(memberLoginDto.getPassword(),member.getPassword())){
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        } // 비밀번호 불일치
+        } // 비밀번호 불일치시, UNAUTHORIZED 반환
 
+        // ----모두 일치하는 경우-----
         UsernamePasswordAuthenticationToken token
                 = new UsernamePasswordAuthenticationToken(member.getEmail(), member.getPassword());
         // 로그인할 때는 email과 password로만 이루어진 token 만들기
@@ -81,15 +92,22 @@ public class MemberController {
 
         // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add();
+        httpHeaders.add("Authorization","Bearer "+accessToken);
 
         // RefreshToken을 DB에 저장한다. 성능 때문에 DB가 아니라 Redis에 저장하는 것이 좋다.
         // 그리고 redis에 저장하면서 사용자의 clientip 를 같이 저장한다.
         //----------> 코드 필요
 
 
+        Cookie cookie = new Cookie("RefreshToken",refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+//        cookie.setSecure(true); //-> https에서만 가능하게
+        response.addCookie(cookie);
 
-
+        return new ResponseEntity(httpHeaders, HttpStatus.OK);
+//        return new ResponseEntity<>(accessToken, httpHeaders, HttpStatus.OK);
+        // 헤더에 acceessToken, 쿠키에 ResponseToken 담아서
     }
 
 

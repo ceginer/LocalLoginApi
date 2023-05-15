@@ -15,7 +15,7 @@ import org.springframework.web.cors.CorsUtils;
 public class SecurityConfig {
 
     private final AuthenticationManagerConfig authenticationManagerConfig;
-    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+//    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     // ManagerConfig 가 Manager 역할을 할 수 있게끔하고,
     // EntryPoint 가 에러가 일어났을 때, 어떤 것들을 할 수 있는지를 정해주도록 하기 위해서
@@ -47,12 +47,12 @@ public class SecurityConfig {
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
         // Preflight 요청은 허용한다. https://velog.io/@jijang/%EC%82%AC%EC%A0%84-%EC%9A%94%EC%B2%AD-Preflight-request
 
-                .mvcMatchers("/members/signup", "/members/login", "/members/refreshToken").permitAll()
+                .mvcMather("/members/signup", "/members/login").permitAll()
 //                .mvcMather(GET, "/~~~") Role이 주어졌을 때 접근 허용 및 hasAnyRole 필요
 
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(customAuthenticationEntryPoint)
+//                .authenticationEntryPoint(customAuthenticationEntryPoint)
 
                 .and()
                 .build();
