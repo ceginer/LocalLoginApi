@@ -1,22 +1,15 @@
 package com.example.loginapi.jwt.UserDetailsToken;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
+@Getter
+@RequiredArgsConstructor
+public enum Role{
 
-public class Role implements GrantedAuthority {
-    public static final String USER = "USER";
-    public static final String ADMIN = "ADMIN";
+    ADMIN("관리자"), USER("일반 사용자");
 
-    private String authority;
-
-    public Role(String authority){
-        this.authority = authority;
-    }
-
-    @Override
-    public String getAuthority() {
-        return authority;
-    }
+    private final String title;
 
 }

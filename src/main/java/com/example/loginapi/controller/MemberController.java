@@ -4,13 +4,18 @@ import com.example.loginapi.domain.Member;
 import com.example.loginapi.dto.Login.MemberLoginDto;
 import com.example.loginapi.dto.Signup.MemberSignupDto;
 import com.example.loginapi.dto.Signup.MemberSignupResponseDto;
+import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
 import com.example.loginapi.jwt.provider.JwtAuthenticationProvider;
 import com.example.loginapi.repository.MemberRepository;
 import com.example.loginapi.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +29,7 @@ public class MemberController {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final DetailsService DetailsService;
 
     @PostMapping("/signup")
     public ResponseEntity signup(@RequestBody @Valid MemberSignupDto memberSignupDto, BindingResult bindingResult){
@@ -65,9 +71,23 @@ public class MemberController {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         } // 비밀번호 불일치
 
+        UsernamePasswordAuthenticationToken token
+                = new UsernamePasswordAuthenticationToken(member.getEmail(), member.getPassword());
+        // 로그인할 때는 email과 password로만 이루어진 token 만들기
+
         //모두 일치하면 access, refreshToken 발급
-        String accessToken = jwtAuthenticationProvider.createAccessToken();
-        String refreshToken = jwtAuthenticationProvider.createRefreshToken();
+        String accessToken = jwtAuthenticationProvider.createAccessToken(token);
+        String refreshToken = jwtAuthenticationProvider.createRefreshToken(token);
+
+        // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add();
+
+        // RefreshToken을 DB에 저장한다. 성능 때문에 DB가 아니라 Redis에 저장하는 것이 좋다.
+        // 그리고 redis에 저장하면서 사용자의 clientip 를 같이 저장한다.
+        //----------> 코드 필요
+
+
 
 
     }

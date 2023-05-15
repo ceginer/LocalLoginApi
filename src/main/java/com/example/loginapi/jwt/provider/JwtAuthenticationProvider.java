@@ -3,10 +3,7 @@ package com.example.loginapi.jwt.provider;
 import com.example.loginapi.jwt.UserDetailsToken.Details;
 import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
 import com.example.loginapi.jwt.util.JwtTokenizer;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,13 +43,13 @@ public class JwtAuthenticationProvider{
 
     /**
      * 적절한 설정을 통해 토큰을 생성하여 반환
-     * @param authentication
-     * @return
+     * @param authentication, byte[], Long
+     * @return String
      */
 
-    public String createToken(Authentication authentication) {
+    public String createToken(Authentication authentication, byte[] secret_key, Long expire_time) {
 
-        Claims claims = Jwts.claims().setSubject(authentication.getName());
+        Claims claims = Jwts.claims().setSubject(authentication.getName()); // getName으로 sub에 이메일 넣기
 
         Date now = new Date();
         Date expiresIn = new Date(now.getTime() + expire_time);
@@ -67,11 +64,11 @@ public class JwtAuthenticationProvider{
 
     public String createAccessToken(Authentication authentication){
 
-        return createToken(authentication);
+        return createToken(authentication,accessSecret, ACCESS_TOKEN_EXPIRE_COUNT);
     }
 
     public String createRefreshToken(Authentication authentication){
-        return createToken();
+        return createToken(authentication, refreshSecret, REFRESH_TOKEN_EXPIRE_COUNT);
     }
 
 

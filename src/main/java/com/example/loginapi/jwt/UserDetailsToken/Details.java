@@ -20,8 +20,12 @@ public class Details implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new Role("USER"));
-        authorities.add(new SimpleGrantedAuthority("ADMIN"));
+        authorities.add(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {
+                return member.getRole().toString();
+            }
+        });
         return authorities;
     }
 
@@ -32,7 +36,7 @@ public class Details implements UserDetails {
 
     @Override
     public String getUsername() {
-        return member.getName();.;
+        return member.getName();
     }
 
     @Override
