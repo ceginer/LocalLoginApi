@@ -2,7 +2,6 @@ package com.example.loginapi.jwt.provider;
 
 import com.example.loginapi.jwt.UserDetailsToken.Details;
 import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
-import com.example.loginapi.jwt.util.JwtTokenizer;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

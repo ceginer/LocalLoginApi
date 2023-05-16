@@ -107,7 +107,7 @@ public class MemberController {
 
         return new ResponseEntity(httpHeaders, HttpStatus.OK);
 //        return new ResponseEntity<>(accessToken, httpHeaders, HttpStatus.OK);
-        // 헤더에 acceessToken, 쿠키에 ResponseToken 담아서
+        // 헤더에 acceessToken, 쿠키에 ResponseToken 담아서, body에는 아무것도 없음.
     }
 
 

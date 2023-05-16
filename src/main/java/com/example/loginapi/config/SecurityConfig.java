@@ -1,5 +1,6 @@
 package com.example.loginapi.config;
 
+import com.example.loginapi.jwt.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.cors.CorsUtils;
 
 @Configuration
@@ -15,7 +17,9 @@ import org.springframework.web.cors.CorsUtils;
 public class SecurityConfig {
 
     private final AuthenticationManagerConfig authenticationManagerConfig;
-//    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    private final AccessDeniedHandler jwtAccessDeniedHandler;
 
     // ManagerConfig 가 Manager 역할을 할 수 있게끔하고,
     // EntryPoint 가 에러가 일어났을 때, 어떤 것들을 할 수 있는지를 정해주도록 하기 위해서
@@ -47,13 +51,17 @@ public class SecurityConfig {
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
         // Preflight 요청은 허용한다. https://velog.io/@jijang/%EC%82%AC%EC%A0%84-%EC%9A%94%EC%B2%AD-Preflight-request
 
-                .mvcMather("/members/signup", "/members/login").permitAll()
-//                .mvcMather(GET, "/~~~") Role이 주어졌을 때 접근 허용 및 hasAnyRole 필요
+                .requestMatchers("/members/signup", "/members/login", "/members/refreshToken").permitAll()
+                .requestMatchers("/manager/**").hasRole("ADMIN")
+                //.requestMatchers("/manager로 시작하는 url") ADMIN 이 주어졌을 때 접근 허용 및 hasAnyRole 필요
+                .anyRequest().authenticated()
 
                 .and()
                 .exceptionHandling()
-//                .authenticationEntryPoint(customAuthenticationEntryPoint)
-
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                // -> 인증되지 않은 사용자에 대한 접근처리
+                .accessDeniedHandler(jwtAccessDeniedHandler)
+                // -> 인증되었으나, 권한이 없는 사용자에 대한 처리
                 .and()
                 .build();
     }
