@@ -108,7 +108,6 @@ public class MemberController {
         // 그리고 redis에 저장하면서 사용자의 clientip 를 같이 저장한다.
         //----------> 코드 필요
 
-
         Cookie cookie = new Cookie("RefreshToken",refreshToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/");

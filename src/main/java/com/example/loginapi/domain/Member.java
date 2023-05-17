@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Getter
 public class Member {
     @Id
-    @Column(name = "member_Id")
+    @Column(name = "member_Id") // memberId로 했을 때는 적용되지 않더라. 스네이크 표현형식 고정인듯.
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
 

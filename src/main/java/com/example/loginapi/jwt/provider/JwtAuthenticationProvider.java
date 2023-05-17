@@ -32,7 +32,7 @@ public class JwtAuthenticationProvider{
     @Value("${jwt.secretKey}")
     private byte[] accessSecret;
 
-    @Value("{jwt.refreshKey}")
+    @Value("${jwt.refreshKey}")
     private byte[] refreshSecret;
 
     public final static Long ACCESS_TOKEN_EXPIRE_COUNT = 30 * 60 * 1000L; // 30 minutes
