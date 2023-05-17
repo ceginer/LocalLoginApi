@@ -30,6 +30,7 @@ dependencies {
 
     // mysql & jpa -> @CreationTimestamp jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
     //jwt -> Claim, Jwts 사용할 때 필요.
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'

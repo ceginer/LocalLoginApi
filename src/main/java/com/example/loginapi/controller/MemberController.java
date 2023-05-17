@@ -2,6 +2,7 @@ package com.example.loginapi.controller;
 
 import com.example.loginapi.domain.Member;
 import com.example.loginapi.dto.Login.MemberLoginDto;
+import com.example.loginapi.dto.Login.MemberLoginResponseDto;
 import com.example.loginapi.dto.Signup.MemberSignupDto;
 import com.example.loginapi.dto.Signup.MemberSignupResponseDto;
 import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.http.HttpResponse;
 
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/members")
@@ -38,11 +41,13 @@ public class MemberController {
     @PostMapping("/signup")
     public ResponseEntity signup(@RequestBody @Valid MemberSignupDto memberSignupDto, BindingResult bindingResult){
         if(bindingResult.hasErrors()){
+            log.error("binding result 에러");
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
 
         // 이미 존재하는 이메일인지 검증
         if( memberService.IsPresentEmail(memberSignupDto.getEmail()) ){
+            log.error("이미 존재하는 이메일인 에러");
             return new ResponseEntity(HttpStatus.CONFLICT); // 에러 409, 이미 있는 이메일.
         }
 
@@ -87,8 +92,8 @@ public class MemberController {
         // 로그인할 때는 email과 password로만 이루어진 token 만들기
 
         //모두 일치하면 access, refreshToken 발급
-        String accessToken = jwtAuthenticationProvider.createAccessToken(token);
-        String refreshToken = jwtAuthenticationProvider.createRefreshToken(token);
+        String accessToken = jwtAuthenticationProvider.createAccessToken(token, member);
+        String refreshToken = jwtAuthenticationProvider.createRefreshToken(token, member);
 
         // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -105,9 +110,16 @@ public class MemberController {
 //        cookie.setSecure(true); //-> https에서만 가능하게
         response.addCookie(cookie);
 
-        return new ResponseEntity(httpHeaders, HttpStatus.OK);
+        // 테스트용 잘되었는지
+        MemberLoginResponseDto loginResponse = MemberLoginResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .memberId(member.getMemberId())
+                .nickname(member.getName())
+                .build();
+        return new ResponseEntity( loginResponse, httpHeaders, HttpStatus.OK);
 //        return new ResponseEntity<>(accessToken, httpHeaders, HttpStatus.OK);
-        // 헤더에 acceessToken, 쿠키에 ResponseToken 담아서, body에는 아무것도 없음.
+        // 헤더에 acceessToken, 쿠키에 ResponseToken 담아서, body에는 테스트용
     }
 
 

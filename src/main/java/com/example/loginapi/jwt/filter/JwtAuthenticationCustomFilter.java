@@ -32,6 +32,7 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
     // 원래 같으면 util 의 Tokenizer 클래스에 UsernameToken을 만들기까지의 과정을 넣고,
     // 이 클래스에서는 Manager.authenticate() 만 하면 완성될 수 있도록 하면 더 좋다.
 
+    // Filter는 Access토큰이 존재할 때만 사용되는 것.
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessTokenString = resolveToken(request);

@@ -1,5 +1,6 @@
 package com.example.loginapi.jwt.provider;
 
+import com.example.loginapi.domain.Member;
 import com.example.loginapi.jwt.UserDetailsToken.Details;
 import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
 import io.jsonwebtoken.*;
@@ -46,9 +47,12 @@ public class JwtAuthenticationProvider{
      * @return String
      */
 
-    public String createToken(Authentication authentication, byte[] secret_key, Long expire_time) {
+    public String createToken(Authentication authentication, byte[] secret_key, Long expire_time, Member member) {
 
         Claims claims = Jwts.claims().setSubject(authentication.getName()); // getName으로 sub에 이메일 넣기
+
+        //토큰에 claims 추가 필요
+        claims.put("memberID",member.getMemberId());
 
         Date now = new Date();
         Date expiresIn = new Date(now.getTime() + expire_time);
@@ -61,13 +65,13 @@ public class JwtAuthenticationProvider{
                 .compact();
     }
 
-    public String createAccessToken(Authentication authentication){
+    public String createAccessToken(Authentication authentication, Member member){
 
-        return createToken(authentication,accessSecret, ACCESS_TOKEN_EXPIRE_COUNT);
+        return createToken(authentication,accessSecret, ACCESS_TOKEN_EXPIRE_COUNT, member);
     }
 
-    public String createRefreshToken(Authentication authentication){
-        return createToken(authentication, refreshSecret, REFRESH_TOKEN_EXPIRE_COUNT);
+    public String createRefreshToken(Authentication authentication, Member member){
+        return createToken(authentication, refreshSecret, REFRESH_TOKEN_EXPIRE_COUNT, member);
     }
 
 
