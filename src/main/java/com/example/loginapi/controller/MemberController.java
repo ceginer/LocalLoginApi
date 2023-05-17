@@ -6,6 +6,7 @@ import com.example.loginapi.dto.Login.MemberLoginResponseDto;
 import com.example.loginapi.dto.Signup.MemberSignupDto;
 import com.example.loginapi.dto.Signup.MemberSignupResponseDto;
 import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
+import com.example.loginapi.jwt.UserDetailsToken.Role;
 import com.example.loginapi.jwt.provider.JwtAuthenticationProvider;
 import com.example.loginapi.repository.MemberRepository;
 import com.example.loginapi.service.MemberService;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,12 +57,15 @@ public class MemberController {
         member.setName(memberSignupDto.getName());
         member.setEmail(memberSignupDto.getEmail());
         member.setPassword(passwordEncoder.encode(memberSignupDto.getPassword()));
+        member.setRole(Role.ADMIN);
 
         Member saveMember = memberService.addMember(member);
         // Spring Data Jpa 통해 MemberRepository.save 할 수도 있지만,
         // 추가로 role 권한을 설정해줘야 하기 때문에 Service에서 수행
         // -> 물론 MemberRepository.save 하기만 해도 Service로 분리하는 것이 좋음.
 
+
+        // 테스트용 response가 잘 받아오는지 -> responsedto 객체를 json 으로 바꿔주는 라이브러리 필요 = Jackson
         MemberSignupResponseDto memberSignupResponseDto = new MemberSignupResponseDto();
         memberSignupResponseDto.setMemberId(saveMember.getMemberId());
         memberSignupResponseDto.setEmail(saveMember.getEmail());
@@ -117,6 +122,7 @@ public class MemberController {
                 .memberId(member.getMemberId())
                 .nickname(member.getName())
                 .build();
+
         return new ResponseEntity( loginResponse, httpHeaders, HttpStatus.OK);
 //        return new ResponseEntity<>(accessToken, httpHeaders, HttpStatus.OK);
         // 헤더에 acceessToken, 쿠키에 ResponseToken 담아서, body에는 테스트용

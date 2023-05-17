@@ -39,6 +39,9 @@ dependencies {
 
     // json 보내는 방식인 gson
 
+    // response 받기 위한 방법인 jackson
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+
     //dto validation -> @Valid 에서 추가해주기
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 }
