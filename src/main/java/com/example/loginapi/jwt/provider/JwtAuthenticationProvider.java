@@ -3,6 +3,7 @@ package com.example.loginapi.jwt.provider;
 import com.example.loginapi.domain.Member;
 import com.example.loginapi.jwt.UserDetailsToken.Details;
 import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
+import com.example.loginapi.jwt.util.RedisUtil;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +26,10 @@ import java.util.Date;
 // -> 유저 ID 로부터 Token 얻기 (파싱하여 DB이용) ,
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationProvider{
 
-//    private final JwtTokenizer jwtTokenizer;
+    private final RedisUtil redisUtil;
 
     @Value("${jwt.secretKey}")
     private byte[] accessSecret;
@@ -36,7 +38,8 @@ public class JwtAuthenticationProvider{
     private byte[] refreshSecret;
 
     public final static Long ACCESS_TOKEN_EXPIRE_COUNT = 30 * 60 * 1000L; // 30 minutes
-    public final static Long REFRESH_TOKEN_EXPIRE_COUNT = 7 * 24 * 60 * 60 * 1000L; // 7 days
+//    public final static Long REFRESH_TOKEN_EXPIRE_COUNT = 7 * 24 * 60 * 60 * 1000L; // 7 days
+    public final static Long REFRESH_TOKEN_EXPIRE_COUNT = 2 * 60 * 1000L; // 2분
 
     @Autowired
     private DetailsService userDetailsService;
@@ -109,6 +112,11 @@ public class JwtAuthenticationProvider{
         UsernamePasswordAuthenticationToken token
                 = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
         return token;
+    }
+
+
+    public void setRefreshToken(String refreshTokenString, Member member){
+        redisUtil.setDataExpire(String.valueOf(member.getMemberId()), refreshTokenString, REFRESH_TOKEN_EXPIRE_COUNT);
     }
 
 }

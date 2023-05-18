@@ -53,7 +53,7 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
 
     /**
      * http 헤더로부터 bearer 토큰을 가져옴.
-     * @param requset
+     * @param request
      * @return
      */
     public String resolveToken(HttpServletRequest request) {

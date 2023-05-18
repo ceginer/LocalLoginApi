@@ -8,6 +8,7 @@ import com.example.loginapi.dto.Signup.MemberSignupResponseDto;
 import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
 import com.example.loginapi.jwt.UserDetailsToken.Role;
 import com.example.loginapi.jwt.provider.JwtAuthenticationProvider;
+import com.example.loginapi.jwt.util.RedisUtil;
 import com.example.loginapi.repository.MemberRepository;
 import com.example.loginapi.service.MemberService;
 import jakarta.servlet.http.Cookie;
@@ -39,6 +40,7 @@ public class MemberController {
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final DetailsService DetailsService;
+    private final RedisUtil redisUtil;
 
     @PostMapping("/signup")
     public ResponseEntity signup(@RequestBody @Valid MemberSignupDto memberSignupDto, BindingResult bindingResult){
@@ -100,13 +102,16 @@ public class MemberController {
         String accessToken = jwtAuthenticationProvider.createAccessToken(token, member);
         String refreshToken = jwtAuthenticationProvider.createRefreshToken(token, member);
 
+        // RefreshToken을 DB에 저장한다. 성능 때문에 DB가 아니라 Redis에 저장하는 것이 좋다.
+        // 그리고 redis에 저장하면서 사용자의 Id 를 같이 저장한다.
+        jwtAuthenticationProvider.setRefreshToken(refreshToken, member);
+
+
         // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization","Bearer "+accessToken);
 
-        // RefreshToken을 DB에 저장한다. 성능 때문에 DB가 아니라 Redis에 저장하는 것이 좋다.
-        // 그리고 redis에 저장하면서 사용자의 clientip 를 같이 저장한다.
-        //----------> 코드 필요
+        // RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
 
         Cookie cookie = new Cookie("RefreshToken",refreshToken);
         cookie.setHttpOnly(true);

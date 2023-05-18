@@ -44,6 +44,9 @@ dependencies {
 
     //dto validation -> @Valid 에서 추가해주기
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 tasks.named('test') {
