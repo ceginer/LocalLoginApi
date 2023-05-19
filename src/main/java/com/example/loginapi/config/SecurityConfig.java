@@ -34,6 +34,7 @@ public class SecurityConfig {
                 // formLogin 과 basic 을 이용하지 않을으로써 기존 filter 의 역할을 사용하지 않을 것임.
                 // 여기서는 UsernamePasswordFilter 의 기본 필터 대신 custom filter 적용시킬 것.
                 // 그 이유는 JwtAuthenticationCustomFilter 에서 설명하겠음.
+
                 .and()
                 .formLogin().disable()
                 .httpBasic().disable()

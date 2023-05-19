@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -16,7 +17,11 @@ public class RedisUtil {
 
     public String getData(String key){
         ValueOperations<String, String> valueOperations = stringRedisTemplate.opsForValue();
-        return valueOperations.get(key);
+        String data = valueOperations.get(key);
+        if (data == null) {
+            throw new RuntimeException("Failed to retrieve data from Redis.");
+        }
+        return data;
     }
 
     public void setData(String key, String value){

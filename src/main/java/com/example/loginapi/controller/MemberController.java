@@ -5,6 +5,7 @@ import com.example.loginapi.dto.Login.MemberLoginDto;
 import com.example.loginapi.dto.Login.MemberLoginResponseDto;
 import com.example.loginapi.dto.Signup.MemberSignupDto;
 import com.example.loginapi.dto.Signup.MemberSignupResponseDto;
+import com.example.loginapi.jwt.UserDetailsToken.Details;
 import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
 import com.example.loginapi.jwt.UserDetailsToken.Role;
 import com.example.loginapi.jwt.provider.JwtAuthenticationProvider;
@@ -20,7 +21,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,7 +45,7 @@ public class MemberController {
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final DetailsService DetailsService;
     private final RedisUtil redisUtil;
-
+    private final AuthenticationManager authenticationManager;
     @PostMapping("/signup")
     public ResponseEntity signup(@RequestBody @Valid MemberSignupDto memberSignupDto, BindingResult bindingResult){
         if(bindingResult.hasErrors()){
@@ -87,25 +91,32 @@ public class MemberController {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
 
-        Member member = memberService.findByEmail(memberLoginDto.getEmail());
-        // -> Service에서 따로 일치하는 email이 없을 경우 exception 발생
-        if(!passwordEncoder.matches(memberLoginDto.getPassword(),member.getPassword())){
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        } // 비밀번호 불일치시, UNAUTHORIZED 반환
-
         // ----모두 일치하는 경우-----
         UsernamePasswordAuthenticationToken token
-                = new UsernamePasswordAuthenticationToken(member.getEmail(), member.getPassword());
+                = new UsernamePasswordAuthenticationToken(memberLoginDto.getEmail(), memberLoginDto.getPassword());
         // 로그인할 때는 email과 password로만 이루어진 token 만들기
+        Authentication authentication = authenticationManager.authenticate(token);
+
+//
+//        // Controller 에서는 Member 바로 사용
+//        Member member = memberService.findByEmail(memberLoginDto.getEmail());
+//        // -> Service에서 따로 일치하는 email이 없을 경우 exception 발생
+//        if(!passwordEncoder.matches(memberLoginDto.getPassword(),member.getPassword())){
+//            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+//        } // 비밀번호 불일치시, UNAUTHORIZED 반환
 
         //모두 일치하면 access, refreshToken 발급
-        String accessToken = jwtAuthenticationProvider.createAccessToken(token, member);
-        String refreshToken = jwtAuthenticationProvider.createRefreshToken(token, member);
+        // 인증 토큰 발급할 때,
+        String accessToken = jwtAuthenticationProvider.createAccessToken(authentication);
+        String refreshToken = jwtAuthenticationProvider.createRefreshToken(authentication);
 
         // RefreshToken을 DB에 저장한다. 성능 때문에 DB가 아니라 Redis에 저장하는 것이 좋다.
         // 그리고 redis에 저장하면서 사용자의 Id 를 같이 저장한다.
-        jwtAuthenticationProvider.setRefreshToken(refreshToken, member);
+        Details userDetails = (Details) authentication.getPrincipal();
+        Member member = userDetails.getMember();
 
+        jwtAuthenticationProvider.setRefreshToken(refreshToken, String.valueOf(member.getMemberId()));
+        // Id는 long 형태이므로
 
         // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급
         HttpHeaders httpHeaders = new HttpHeaders();
