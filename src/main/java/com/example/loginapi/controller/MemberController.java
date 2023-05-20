@@ -10,28 +10,29 @@ import com.example.loginapi.jwt.UserDetailsToken.DetailsService;
 import com.example.loginapi.jwt.UserDetailsToken.Role;
 import com.example.loginapi.jwt.provider.JwtAuthenticationProvider;
 import com.example.loginapi.jwt.util.RedisUtil;
-import com.example.loginapi.repository.MemberRepository;
 import com.example.loginapi.service.MemberService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
-
-import java.net.http.HttpResponse;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @Slf4j
@@ -59,6 +60,7 @@ public class MemberController {
             return new ResponseEntity(HttpStatus.CONFLICT); // 에러 409, 이미 있는 이메일.
         }
 
+        // @Builder 로 바꿀 수도 있음.
         Member member = new Member();
         member.setName(memberSignupDto.getName());
         member.setEmail(memberSignupDto.getEmail());
@@ -71,7 +73,7 @@ public class MemberController {
         // -> 물론 MemberRepository.save 하기만 해도 Service로 분리하는 것이 좋음.
 
 
-        // 테스트용 response가 잘 받아오는지 -> responsedto 객체를 json 으로 바꿔주는 라이브러리 필요 = Jackson
+        // 테스트용 response가 잘 받아오는지 -> responsedto 객체를 json 으로 바꿔주는 @ResponseBody
         MemberSignupResponseDto memberSignupResponseDto = new MemberSignupResponseDto();
         memberSignupResponseDto.setMemberId(saveMember.getMemberId());
         memberSignupResponseDto.setEmail(saveMember.getEmail());
@@ -90,59 +92,39 @@ public class MemberController {
         if(bindingResult.hasErrors()){
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
-        System.out.println("accessToken1");
-        System.out.println("refreshToken1");
+
         // ----모두 일치하는 경우-----
         UsernamePasswordAuthenticationToken token
                 = new UsernamePasswordAuthenticationToken(memberLoginDto.getEmail(), memberLoginDto.getPassword());
         // 로그인할 때는 email과 password로만 이루어진 token 만들기
-        System.out.println("accessToken3");
-        System.out.println("refreshToken3");
 
+        // DB에 id가 있는지, DB의 id와 pw가 일치하는지까지 모두 검사해줌
+        // excepthon -> 추가바람
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(token);
-        System.out.println("accessToken2");
-        System.out.println("refreshToken2");
-//
-//        // -> Service에서 따로 일치하는 email이 없을 경우 exception 발생
-//        if(!passwordEncoder.matches(memberLoginDto.getPassword(),member.getPassword())){
-//            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-//        } // 비밀번호 불일치시, UNAUTHORIZED 반환
+
 
         //모두 일치하면 access, refreshToken 발급
         // 인증 토큰 발급할 때,
         String accessToken = jwtAuthenticationProvider.createAccessToken(authentication);
         String refreshToken = jwtAuthenticationProvider.createRefreshToken(authentication);
 
-        System.out.println("accessToken" + accessToken);
-        System.out.println("refreshToken" + refreshToken);
-
         // RefreshToken을 DB에 저장한다. 성능 때문에 DB가 아니라 Redis에 저장하는 것이 좋다.
         // 그리고 redis에 저장하면서 사용자의 Id 를 같이 저장한다.
-        //Repository에서 Member를 가져와도 되지만, Member
+        //Repository에서 Member를 가져와도 되지만, User~Token을 검사한 authentication의 userdetails에 모든 회원정보가 들어가 있음.
 //        Member member = memberService.findByEmail(memberLoginDto.getEmail());
+
+
         Details userDetails= (Details) authentication.getPrincipal();
         Member member = userDetails.getMember();
-        System.out.println(member.toString());
+//        System.out.println(member.toString());
 
         jwtAuthenticationProvider.setRefreshToken(String.valueOf(member.getMemberId()), refreshToken);
         // Id는 long 형태이므로
 
-        // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization","Bearer "+accessToken);
-
-        System.out.println(accessToken);
-
-
+        // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰을 붙혀 return 시키기.
+        HttpHeaders httpHeaders = memberService.setHeaderAccessToken(accessToken);
         // RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
-
-        Cookie cookie = new Cookie("RefreshToken",refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-//        cookie.setSecure(true); //-> https에서만 가능하게
-        response.addCookie(cookie);
-
-        System.out.println(cookie);
+        memberService.setCookieRefreshToken(response, refreshToken);
 
 
         // 테스트용 잘되었는지
@@ -161,6 +143,43 @@ public class MemberController {
 //        return new ResponseEntity<>(accessToken, httpHeaders, HttpStatus.OK);
         // 헤더에 acceessToken, 쿠키에 ResponseToken 담아서, body에는 테스트용
     }
+
+    @PostMapping("/loginremain")
+    public void loginremain(HttpServletRequest request, HttpServletResponse response){
+
+        return;
+    }
+    @PostMapping("/logout") // Redis DB 삭제 = 끝
+    public ResponseEntity logout(HttpServletResponse response){
+        log.info("logout 시작");
+        // 저장된 인증객체를 SecurityContextHolder에서 꺼냄
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        log.info(securityContext.toString());
+
+        // 인증객체로부터 Id 추출
+        Authentication authentication = securityContext.getAuthentication();
+        Details userDetails = (Details) authentication.getPrincipal();
+        String memberId = String.valueOf(userDetails.getMember().getMemberId());
+
+        // Id와 일치하는 DB(redis)에 존재하는 key 삭제
+        memberService.deleteRefresh(memberId);
+        expireCookie(response,"RefreshToken"); // 클라이언트에 만료된 쿠키 전달 -> 쿠키삭제
+
+
+        // 인증객체 꾸러미 SecurityContextHolder 를 clear()
+        // 사실 웹 어플리케이션에서는 stateless 로 이루어지기 때문에 굳이 안해도 되는데 특수 상황에선 써야한다고 함.
+        SecurityContextHolder.clearContext();
+        log.info(securityContext.toString());
+
+        return new ResponseEntity("Logout Success", HttpStatus.OK);
+    }
+
+    private static void expireCookie(HttpServletResponse response,String name) {
+        Cookie cookie=new Cookie(name, null);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
 
 
 }

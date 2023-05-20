@@ -95,12 +95,11 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
                 log.info("SecurityContextHolder" + SecurityContextHolder.getContext());
 
 
-                // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급
-                HttpHeaders httpHeaders = new HttpHeaders();
-                httpHeaders.add("Authorization","Bearer "+ReissuedAccessToken);
+                // Filter에서는 바로 헤더의 Authorization의 Bearer 뒤에 AccessToken 보내기
+                response.setHeader("Authorization","Bearer "+ReissuedAccessToken);
+                log.info("ReissuedAccessToken : " + ReissuedAccessToken);
 
                 // RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
-
                 Cookie cookie = new Cookie("RefreshToken",ReissuedRefreshToken);
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
