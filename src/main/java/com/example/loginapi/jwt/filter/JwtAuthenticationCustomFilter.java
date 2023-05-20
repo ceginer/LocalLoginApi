@@ -8,6 +8,7 @@ import com.example.loginapi.domain.Member;
 import com.example.loginapi.jwt.UserDetailsToken.Details;
 import com.example.loginapi.jwt.provider.JwtAuthenticationProvider;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -34,6 +36,7 @@ import java.util.OptionalInt;
 
 // -> 왜 CustomFilter를 만들었냐? = 로그인폼 아니고 JWT 방식으로 로그인 활용하려고,
 // -> 그럼 첨부터 CustomFilter 하지, 왜 Username~ Filter 쓰냐? = Username~ Filter를 이용한 기본적으로는 사용하기 위해서
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
 
@@ -45,13 +48,16 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("새로운 필터 시작");
         String accessTokenString = resolveToken(request);
         if (accessTokenString != null){
-
             try{
+                log.info("accessToken 존재, 만료되기 전");
                 Claims claimsAccess = provider.getClaimsAccessToken(accessTokenString);
+                log.info("accessToken 만료 안됨");
+                log.info("claimsAccess : " + claimsAccess);
                 // secretkey 불일치 시, SignatureException 발생
-                // 토큰 기한 만료 시, JwtException
+                // 토큰 기한 만료 시, ExpiredJwtException
 
                 UsernamePasswordAuthenticationToken token = provider.getAuthenticationToken(claimsAccess);
                 // -> Manager.authenticate 기능을 모두 수행해버려서 authenticate 필요없음
@@ -61,24 +67,32 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
                 // 인증정보가 SecurityContextHolder 에 저장되게 됨
                 SecurityContextHolder.getContext()
                         .setAuthentication(token); // 현재 요청에서 언제든지 인증정보를 꺼낼 수 있도록 해준다.
+                log.info("SecurityContextHolder" + SecurityContextHolder.getContext());
 
-            }catch (JwtException e){
+            }catch (ExpiredJwtException e){
+
+                log.info("Access토큰 만료 후");
                 // 쿠키의 "RefreshToken" 으로부터 RefreshToke 추출
                 String refreshTokenString = provider.getRefreshToken(request);
                 Claims claimsRefresh = provider.getClaimsRefreshToken(refreshTokenString);
+                log.info("claimsRefresh : " + claimsRefresh);
                 // secretkey 인증 -> 실패 시 SignatureException
                 // 토큰 만료 인증 -> 실패 시 JwtException -> 다시 로그인 알림
 
                 UsernamePasswordAuthenticationToken token = provider.getAuthenticationToken(claimsRefresh);
 
                 String ReissuedRefreshToken = provider.
-                        checkRefreshTokenAndReissuedToken(claimsRefresh.get("memberID", String.class), token);
+                        checkRefreshTokenAndReissuedToken(String.valueOf(claimsRefresh.get("memberID")), token);
+                // memberID => long 타입 -> String 타입으로.
+                // claims의 Id 가 DB(redis) 에 존재 X -> RuntimeException 에러
+
 
                 String ReissuedAccessToken = provider.createAccessToken(token);
 
                 // 인증정보가 SecurityContextHolder 에 저장되게 됨
                 SecurityContextHolder.getContext()
                         .setAuthentication(token); // 현재 요청에서 언제든지 인증정보를 꺼낼 수 있도록 해준다.
+                log.info("SecurityContextHolder" + SecurityContextHolder.getContext());
 
 
                 // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급

@@ -22,7 +22,7 @@ public class AuthenticationManagerConfig extends AbstractHttpConfigurer<Authenti
 
     @Override
     public void configure(HttpSecurity builder) throws Exception {
-//        AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
+        AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
 
         builder.addFilterBefore(new JwtAuthenticationCustomFilter(jwtAuthenticationProvider),
                 UsernamePasswordAuthenticationFilter.class);

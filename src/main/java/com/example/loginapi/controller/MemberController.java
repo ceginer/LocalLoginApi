@@ -45,7 +45,7 @@ public class MemberController {
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final DetailsService DetailsService;
     private final RedisUtil redisUtil;
-    private final AuthenticationManager authenticationManager;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
     @PostMapping("/signup")
     public ResponseEntity signup(@RequestBody @Valid MemberSignupDto memberSignupDto, BindingResult bindingResult){
         if(bindingResult.hasErrors()){
@@ -90,16 +90,19 @@ public class MemberController {
         if(bindingResult.hasErrors()){
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
-
+        System.out.println("accessToken1");
+        System.out.println("refreshToken1");
         // ----모두 일치하는 경우-----
         UsernamePasswordAuthenticationToken token
                 = new UsernamePasswordAuthenticationToken(memberLoginDto.getEmail(), memberLoginDto.getPassword());
         // 로그인할 때는 email과 password로만 이루어진 token 만들기
-        Authentication authentication = authenticationManager.authenticate(token);
+        System.out.println("accessToken3");
+        System.out.println("refreshToken3");
 
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(token);
+        System.out.println("accessToken2");
+        System.out.println("refreshToken2");
 //
-//        // Controller 에서는 Member 바로 사용
-//        Member member = memberService.findByEmail(memberLoginDto.getEmail());
 //        // -> Service에서 따로 일치하는 email이 없을 경우 exception 발생
 //        if(!passwordEncoder.matches(memberLoginDto.getPassword(),member.getPassword())){
 //            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
@@ -110,17 +113,26 @@ public class MemberController {
         String accessToken = jwtAuthenticationProvider.createAccessToken(authentication);
         String refreshToken = jwtAuthenticationProvider.createRefreshToken(authentication);
 
+        System.out.println("accessToken" + accessToken);
+        System.out.println("refreshToken" + refreshToken);
+
         // RefreshToken을 DB에 저장한다. 성능 때문에 DB가 아니라 Redis에 저장하는 것이 좋다.
         // 그리고 redis에 저장하면서 사용자의 Id 를 같이 저장한다.
-        Details userDetails = (Details) authentication.getPrincipal();
+        //Repository에서 Member를 가져와도 되지만, Member
+//        Member member = memberService.findByEmail(memberLoginDto.getEmail());
+        Details userDetails= (Details) authentication.getPrincipal();
         Member member = userDetails.getMember();
+        System.out.println(member.toString());
 
-        jwtAuthenticationProvider.setRefreshToken(refreshToken, String.valueOf(member.getMemberId()));
+        jwtAuthenticationProvider.setRefreshToken(String.valueOf(member.getMemberId()), refreshToken);
         // Id는 long 형태이므로
 
         // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰 발급
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization","Bearer "+accessToken);
+
+        System.out.println(accessToken);
+
 
         // RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
 
@@ -130,6 +142,9 @@ public class MemberController {
 //        cookie.setSecure(true); //-> https에서만 가능하게
         response.addCookie(cookie);
 
+        System.out.println(cookie);
+
+
         // 테스트용 잘되었는지
         MemberLoginResponseDto loginResponse = MemberLoginResponseDto.builder()
                 .accessToken(accessToken)
@@ -137,6 +152,10 @@ public class MemberController {
                 .memberId(member.getMemberId())
                 .nickname(member.getName())
                 .build();
+
+        System.out.println(loginResponse);
+
+        log.info(loginResponse.getAccessToken());
 
         return new ResponseEntity( loginResponse, httpHeaders, HttpStatus.OK);
 //        return new ResponseEntity<>(accessToken, httpHeaders, HttpStatus.OK);

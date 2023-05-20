@@ -9,6 +9,7 @@ import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -29,7 +30,7 @@ import java.util.Optional;
 // -> createToken(만들기, Access/refresh),
 // -> parseToken(파싱, Access/refresh) ,
 // -> 유저 ID 로부터 Token 얻기 (파싱하여 DB이용) ,
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationProvider{
@@ -42,7 +43,7 @@ public class JwtAuthenticationProvider{
     @Value("${jwt.refreshKey}")
     private byte[] refreshSecret;
 
-    public final static Long ACCESS_TOKEN_EXPIRE_COUNT = 30 * 60 * 1000L; // 30 minutes
+    public final static Long ACCESS_TOKEN_EXPIRE_COUNT = 30* 1000L; // 30 seconds
     public final static Long REFRESH_TOKEN_EXPIRE_COUNT = 7 * 24 * 60 * 60 * 1000L; // 7 days , 밀리초 단위
     public final static Long REFRESH_TOKEN_EXPIRE_COUNT_REDIS = REFRESH_TOKEN_EXPIRE_COUNT/ 1000; // 1분, 초 단위
 
@@ -58,7 +59,8 @@ public class JwtAuthenticationProvider{
     public String createToken(Authentication authentication, byte[] secret_key, Long expire_time) {
 
         Details userDetails= (Details) authentication.getPrincipal();
-        Claims claims = Jwts.claims().setSubject(authentication.getName()); // getName으로 sub에 이메일 넣기
+        Claims claims = Jwts.claims().setSubject(userDetails.getMember().getEmail()); // getName으로 sub에 이메일 넣기
+
 
         //토큰에 claims 추가 필요
         claims.put("memberID",userDetails.getMember().getMemberId());
@@ -140,7 +142,8 @@ public class JwtAuthenticationProvider{
 
 
 
-    public void setRefreshToken(String refreshTokenString, String memberId){
+    public void setRefreshToken(String memberId, String refreshTokenString){
+        log.info("RefreshToken 생성");
         redisUtil.setDataExpire(memberId, refreshTokenString, REFRESH_TOKEN_EXPIRE_COUNT_REDIS);
     }
 
@@ -159,9 +162,9 @@ public class JwtAuthenticationProvider{
      * jwtService.createRefreshToken()으로 리프레시 토큰 재발급 후
      * DB에 재발급한 리프레시 토큰 업데이트 후 Flush
      */
-    private String reIssueRefreshToken(Authentication authentication, String memberId) {
+    private String reIssueRefreshToken(String memberId, Authentication authentication) {
         String reIssuedRefreshToken = createRefreshToken(authentication);
-        setRefreshToken(reIssuedRefreshToken, memberId);
+        setRefreshToken(memberId, reIssuedRefreshToken);
 
         return reIssuedRefreshToken;
     }
@@ -175,9 +178,10 @@ public class JwtAuthenticationProvider{
      */
 
     public String checkRefreshTokenAndReissuedToken(String Id, Authentication authentication){
-        String memberId = redisUtil.getData(Id); // 실패하면 RuntimeException 에러
+        String memberId = redisUtil.getData(Id);
+        //-> redis에 Id가 존재하지 않으면 RuntimeException 에러
 
-        String reIssuedRefreshToken = reIssueRefreshToken(authentication, memberId);
+        String reIssuedRefreshToken = reIssueRefreshToken(Id, authentication);
 //        String reIssuedAccessToken = createAccessToken(authentication);
 
         return reIssuedRefreshToken;
