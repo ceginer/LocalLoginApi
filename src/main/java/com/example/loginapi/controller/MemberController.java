@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -99,12 +100,29 @@ public class MemberController {
         UsernamePasswordAuthenticationToken token
                 = new UsernamePasswordAuthenticationToken(memberLoginDto.getEmail(), memberLoginDto.getPassword());
         // 로그인할 때는 email과 password로만 이루어진 token 만들기
-
+        log.info("token 생성");
         // DB에 id가 있는지, DB의 id와 pw가 일치하는지까지 모두 검사해줌
         // excepthon -> 추가바람
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(token);
 
+        // 검증되지 않은 토큰 = authentication
+        Authentication authentication = token;
 
+        // 토큰 검증
+        try{
+            authentication = authenticationManagerBuilder.getObject().authenticate(token);
+        }
+        catch (BadCredentialsException e){ // 일치하지 않는 Id, Pw
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+
+        log.info("authentication 생성");
+        if (authentication.isAuthenticated()) {
+            System.out.println("인증성공");
+        } else {
+            // 인증 실패
+            System.out.println("인증실패");
+            // 에러 응답 처리
+        }
         //모두 일치하면 access, refreshToken 발급
         // 인증 토큰 발급할 때,
         String accessToken = jwtAuthenticationProvider.createAccessToken(authentication);
@@ -147,9 +165,9 @@ public class MemberController {
     }
 
     @PostMapping("/loginremain")
-    public String loginremain(HttpServletRequest request, HttpServletResponse response){
+    public void loginremain(HttpServletRequest request, HttpServletResponse response){
 
-        return "diddiididid";
+        return;
     }
 
     @PostMapping("/logout") // Redis DB 삭제 = 끝
