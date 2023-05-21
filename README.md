@@ -1,7 +1,7 @@
 # Homebrew_BE
 
 - 동아리 Homebrew의 웹페이지를 만드는작업.
-- 자세한 설명 : [Notion 링크](https://continuous-catcher-118.notion.site/JWT-4e990c17ea414940b5ff144ddc1933b1)
+- 자세한 설명 : <코드 진행 및 에러> 참고 -> [Notion 링크](https://continuous-catcher-118.notion.site/JWT-4e990c17ea414940b5ff144ddc1933b1)
 
 ### 맡은 부분
 - Spring Security, JWT 방식을 이용한 로그인
