@@ -30,7 +30,6 @@
 ### 특이 사항
 - postman을 활용해 모든 에러사항에 대한 점검완료.
 </br> -> postman 공유를 원하시면 이메일 부탁드립니다.
-- redis를 ttl 을 이용하여 RefreshToken 만료시간이 지날 때마다 DB에서 자동으로 사라지고,
-</br> 
+- redis를 ttl 을 이용하여 RefreshToken 만료시간이 지날 때마다 DB에서 자동으로 사라짐.
 - Bad Credential( = Id, Pw 불일치 오류) 제외하고는, 모두 spring 에서 오류 확인가능 하다
-- 혹시 뜨지 않는 오류는 CustomAuthenticationEntryPoint 클래스의 authException.printStackTrace(); 를 주석해제하여 Spring IDE 내에서 볼 수 있을 것이다.
+</br> -> 혹시 뜨지 않는 오류는 CustomAuthenticationEntryPoint 클래스의 authException.printStackTrace(); 를 주석해제하여 Spring IDE 내에서 볼 수 있을 것이다.
