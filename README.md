@@ -24,7 +24,7 @@
   ![로그인유지](https://github.com/ceginer/Homebrew_BE/assets/92140163/d9818972-8422-4f77-b7dc-8da0d81ff4d8)
   </br></br>
 - **로그아웃**
-  ![로그아웃](https://github.com/ceginer/Homebrew_BE/assets/92140163/eba7c371-55bf-4473-be40-42aa77d0281b)
+  ![로그아웃](https://github.com/ceginer/Homebrew_BE/assets/92140163/0d963f19-5dda-47ba-89ca-2ee5f5b7a479)
   </br></br>
 
 ### 특이 사항
