@@ -50,24 +50,25 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("새로운 필터 시작");
         String accessTokenString = resolveToken(request);
+        String requestURI = request.getRequestURI();
+
         if (accessTokenString != null){
             try{
-                log.info("accessToken 존재, 만료되기 전");
                 Claims claimsAccess = provider.getClaimsAccessToken(accessTokenString);
                 log.info("accessToken 만료 안됨");
                 log.info("claimsAccess : " + claimsAccess);
                 // secretkey 불일치 시, SignatureException 발생
                 // 토큰 기한 만료 시, ExpiredJwtException
 
-                UsernamePasswordAuthenticationToken token = provider.getAuthenticationToken(claimsAccess);
-                // -> Manager.authenticate 기능을 모두 수행해버려서 authenticate 필요없음
-                // sub에 암호화된 데이터를 집어넣고, 복호화하는 코드를 넣어줄 수 있다.
-                //(여긴안한거)
+                    UsernamePasswordAuthenticationToken token = provider.getAuthenticationToken(claimsAccess);
+                    // -> Manager.authenticate 기능을 모두 수행해버려서 authenticate 필요없음
+                    // sub에 암호화된 데이터를 집어넣고, 복호화하는 코드를 넣어줄 수 있다.
+                    //(여긴안한거)
 
-                // 인증정보가 SecurityContextHolder 에 저장되게 됨
-                SecurityContextHolder.getContext()
-                        .setAuthentication(token); // 현재 요청에서 언제든지 인증정보를 꺼낼 수 있도록 해준다.
-                log.info("SecurityContextHolder" + SecurityContextHolder.getContext());
+                    // 인증정보가 SecurityContextHolder 에 저장되게 됨
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(token); // 현재 요청에서 언제든지 인증정보를 꺼낼 수 있도록 해준다.
+                    log.info("SecurityContextHolder" + SecurityContextHolder.getContext());
 
             }catch (ExpiredJwtException e){
 
@@ -81,33 +82,31 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
 
                 UsernamePasswordAuthenticationToken token = provider.getAuthenticationToken(claimsRefresh);
 
+                //redis 에 refreshToken 저장
                 String ReissuedRefreshToken = provider.
                         checkRefreshTokenAndReissuedToken(String.valueOf(claimsRefresh.get("memberID")), token);
-                // memberID => long 타입 -> String 타입으로.
                 // claims의 Id 가 DB(redis) 에 존재 X -> RuntimeException 에러
+//
+                    String ReissuedAccessToken = provider.createAccessToken(token);
 
+                    // 인증정보가 SecurityContextHolder 에 저장되게 됨
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(token); // 현재 요청에서 언제든지 인증정보를 꺼낼 수 있도록 해준다.
+                    log.info("SecurityContextHolder" + SecurityContextHolder.getContext());
 
-                String ReissuedAccessToken = provider.createAccessToken(token);
+                if( !requestURI.equals("/members/logout") ){
+                    // Filter에서는 바로 헤더의 Authorization의 Bearer 뒤에 AccessToken 보내기
+                    response.setHeader("Authorization","Bearer "+ReissuedAccessToken);
+                    log.info("ReissuedAccessToken : " + ReissuedAccessToken);
 
-                // 인증정보가 SecurityContextHolder 에 저장되게 됨
-                SecurityContextHolder.getContext()
-                        .setAuthentication(token); // 현재 요청에서 언제든지 인증정보를 꺼낼 수 있도록 해준다.
-                log.info("SecurityContextHolder" + SecurityContextHolder.getContext());
-
-
-                // Filter에서는 바로 헤더의 Authorization의 Bearer 뒤에 AccessToken 보내기
-                response.setHeader("Authorization","Bearer "+ReissuedAccessToken);
-                log.info("ReissuedAccessToken : " + ReissuedAccessToken);
-
-                // RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
-                Cookie cookie = new Cookie("RefreshToken",ReissuedRefreshToken);
-                cookie.setHttpOnly(true);
-                cookie.setPath("/");
-//        cookie.setSecure(true); //-> https에서만 가능하게
-                response.addCookie(cookie);
-
+                    // RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
+                    Cookie cookie = new Cookie("RefreshToken",ReissuedRefreshToken);
+                    cookie.setHttpOnly(true);
+                    cookie.setPath("/");
+                    // cookie.setSecure(true); //-> https에서만 가능하게
+                    response.addCookie(cookie);
+                }
             }
-
         }
         filterChain.doFilter(request, response);
         }

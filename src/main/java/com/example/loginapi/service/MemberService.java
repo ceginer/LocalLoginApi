@@ -56,7 +56,16 @@ public class MemberService {
     }
 
     @Transactional
-    public void deleteRefresh(String memberId){
-        redisUtil.deleteData(memberId);
+    public void checkAndDeleteRefresh(String Id){
+        String memberId = redisUtil.getData(Id);
+        // 찾지 못할 시, RuntimeException 발생
+        redisUtil.deleteData(Id);
+    }
+
+    @Transactional
+    public void setExpireCookie(HttpServletResponse response,String name) {
+        Cookie cookie=new Cookie(name, null);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 }

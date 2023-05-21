@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 
 @Slf4j
 @RestController
@@ -145,12 +147,13 @@ public class MemberController {
     }
 
     @PostMapping("/loginremain")
-    public void loginremain(HttpServletRequest request, HttpServletResponse response){
+    public String loginremain(HttpServletRequest request, HttpServletResponse response){
 
-        return;
+        return "diddiididid";
     }
+
     @PostMapping("/logout") // Redis DB 삭제 = 끝
-    public ResponseEntity logout(HttpServletResponse response){
+    public ResponseEntity logout(HttpServletRequest request, HttpServletResponse response){
         log.info("logout 시작");
         // 저장된 인증객체를 SecurityContextHolder에서 꺼냄
         SecurityContext securityContext = SecurityContextHolder.getContext();
@@ -158,27 +161,34 @@ public class MemberController {
 
         // 인증객체로부터 Id 추출
         Authentication authentication = securityContext.getAuthentication();
-        Details userDetails = (Details) authentication.getPrincipal();
-        String memberId = String.valueOf(userDetails.getMember().getMemberId());
+//        if(authentication != null){
+            Details userDetails = (Details) authentication.getPrincipal();
+            String memberId = String.valueOf(userDetails.getMember().getMemberId());
+            log.info(memberId);
 
-        // Id와 일치하는 DB(redis)에 존재하는 key 삭제
-        memberService.deleteRefresh(memberId);
-        expireCookie(response,"RefreshToken"); // 클라이언트에 만료된 쿠키 전달 -> 쿠키삭제
+            // Id와 일치하는 DB(redis)에 존재하는 key 삭제
+            memberService.checkAndDeleteRefresh(memberId);
+            // 찾지 못할 시, RuntimeException 발생
 
+            // 클라이언트에 만료된 쿠키 전달 -> 쿠키삭제
+            memberService.setExpireCookie(response,"RefreshToken");
+            log.info(memberId);
 
-        // 인증객체 꾸러미 SecurityContextHolder 를 clear()
+            // 리다이렉트 시킴으로써 private변수의 AccessToken 없애기
+//            String redirect_uri="http://www.google.com";
+//            response.sendRedirect(redirect_uri);
+//        }
+
+        // 인증객체를 없애기 => SecurityContext 를 clear()
         // 사실 웹 어플리케이션에서는 stateless 로 이루어지기 때문에 굳이 안해도 되는데 특수 상황에선 써야한다고 함.
-        SecurityContextHolder.clearContext();
-        log.info(securityContext.toString());
 
+        securityContext.setAuthentication(null);
+        log.info(securityContext.toString());
+        log.info(SecurityContextHolder.getContext().toString());
         return new ResponseEntity("Logout Success", HttpStatus.OK);
     }
 
-    private static void expireCookie(HttpServletResponse response,String name) {
-        Cookie cookie=new Cookie(name, null);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
+
 
 
 
