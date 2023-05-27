@@ -2,6 +2,7 @@ package com.example.loginapi.config;
 
 import com.example.loginapi.jwt.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.cors.CorsUtils;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -24,7 +26,6 @@ public class SecurityConfig {
     // ManagerConfig 가 Manager 역할을 할 수 있게끔하고,
     // EntryPoint 가 에러가 일어났을 때, 어떤 것들을 할 수 있는지를 정해주도록 하기 위해서
     // -> 기본적인 세팅으로, 외워야 할 것들이 아닌 기본적인 방법들? 이라고 생각하면 될 듯
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
@@ -48,16 +49,17 @@ public class SecurityConfig {
 
                 // 접근 권한 설정 (pre-flight, cors설정)
                 .and()
-                .authorizeRequests()
-                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-        // Preflight 요청은 허용한다. https://velog.io/@jijang/%EC%82%AC%EC%A0%84-%EC%9A%94%EC%B2%AD-Preflight-request
+                .authorizeRequests((authz) -> authz
+                        .requestMatchers("/members/signup").permitAll()
+                        .requestMatchers("/members/login", "/members/refreshToken","/members/logout","/abc","/index.html","/error","/").permitAll()
+                        .requestMatchers("/manager/**").hasRole("ADMIN")
+                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                        .anyRequest().authenticated()
+                )
 
-                .requestMatchers("/members/signup", "/members/login", "/members/refreshToken","/members/logout").permitAll()
-                .requestMatchers("/manager/**").hasRole("ADMIN")
                 //.requestMatchers("/manager로 시작하는 url") ADMIN 이 주어졌을 때 접근 허용 및 hasAnyRole 필요
-                .anyRequest().authenticated()
 
-                .and()
+                // Preflight 요청은 허용한다. https://velog.io/@jijang/%EC%82%AC%EC%A0%84-%EC%9A%94%EC%B2%AD-Preflight-request
                 .exceptionHandling()
                 .authenticationEntryPoint(customAuthenticationEntryPoint)
                 // -> 인증되지 않은 사용자에 대한 접근처리
