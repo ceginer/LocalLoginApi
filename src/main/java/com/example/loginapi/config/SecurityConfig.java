@@ -65,7 +65,16 @@ public class SecurityConfig {
                 // -> 인증되지 않은 사용자에 대한 접근처리
                 .accessDeniedHandler(jwtAccessDeniedHandler)
                 // -> 인증되었으나, 권한이 없는 사용자에 대한 처리
+
+                //-----------Oauth---------
                 .and()
+//                .oauth2Login()
+//                .authorizationRequestRepository(cookieAuthorizationRequestRepository)
+//                .and()
+//                .successHandler(oAuth2LoginSuccessHandler) // 동의하고 계속하기를 눌렀을 때 Handler 설정 , 여기선 안함
+//                .failureHandler(oAuth2LoginFailureHandler) // 소셜 로그인 실패 시 핸들러 설정
+//                .userInfoEndpoint().userService(customOAuth2UserService)// customUserService 설정
+//                .and()
                 .build();
     }
 

@@ -64,6 +64,8 @@ public class JwtAuthenticationProvider{
 
         //토큰에 claims 추가 필요
         claims.put("memberID",userDetails.getMember().getMemberId());
+        claims.put("name",userDetails.getMember().getName());
+        claims.put("pic",userDetails.getMember().getPic());
 
         Date now = new Date();
         Date expiresIn = new Date(now.getTime() + expire_time);

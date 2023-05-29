@@ -30,10 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -68,6 +65,9 @@ public class MemberController {
         member.setName(memberSignupDto.getName());
         member.setEmail(memberSignupDto.getEmail());
         member.setPassword(passwordEncoder.encode(memberSignupDto.getPassword()));
+        if(memberSignupDto.getPic() != null){
+            member.setPic(memberSignupDto.getPic());
+        }
         member.setRole(Role.ADMIN);
 
         Member saveMember = memberService.addMember(member);
@@ -85,8 +85,8 @@ public class MemberController {
         memberSignupResponseDto.setRegdate(saveMember.getRegdate());
 
         // 회원가입
-        return new ResponseEntity(memberSignupResponseDto, HttpStatus.OK);
-
+        return new ResponseEntity(HttpStatus.OK);
+//memberSignupResponseDto,
 
     }
 
@@ -159,12 +159,13 @@ public class MemberController {
 
         log.info(loginResponse.getAccessToken());
 
-        return new ResponseEntity( loginResponse, httpHeaders, HttpStatus.OK);
+        return new ResponseEntity( httpHeaders, HttpStatus.OK);
 //        return new ResponseEntity<>(accessToken, httpHeaders, HttpStatus.OK);
         // 헤더에 acceessToken, 쿠키에 ResponseToken 담아서, body에는 테스트용
+//        loginResponse,
     }
 
-    @PostMapping("/loginremain")
+    @GetMapping("/loginremain")
     public void loginremain(HttpServletRequest request, HttpServletResponse response){
 
         return;
@@ -203,7 +204,8 @@ public class MemberController {
         securityContext.setAuthentication(null);
         log.info(securityContext.toString());
         log.info(SecurityContextHolder.getContext().toString());
-        return new ResponseEntity("Logout Success", HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
+//        "Logout Success",
     }
 
 

@@ -15,7 +15,7 @@ public class webConfig implements WebMvcConfigurer {
                 .allowedOrigins("http://192.168.0.107")
                 .allowedOrigins("http://localhost:3000")
                 .allowedOrigins("http://localhost:8080")
-                .allowedOrigins("https://192.168.0.107")
+                .allowedOrigins("https://172.30.1.20")
                 .allowedOrigins("https://localhost:3000")
                 .allowedOrigins("https://localhost:8080")
                 .allowedMethods("GET","POST","PATCH","DELETE","PUT","OPTIONS") // *로 지정해도 상관없을 듯.

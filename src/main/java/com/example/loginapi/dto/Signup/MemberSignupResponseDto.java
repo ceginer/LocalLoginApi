@@ -13,4 +13,5 @@ public class MemberSignupResponseDto {
     private String email;
     private String password;
     private LocalDateTime regdate;
+    private String pic;
 }
