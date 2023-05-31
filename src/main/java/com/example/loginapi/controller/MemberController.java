@@ -209,7 +209,12 @@ public class MemberController {
 //        "Logout Success",
     }
 
-
+    @GetMapping("/test")
+    public ResponseEntity test(HttpServletRequest request, HttpServletResponse response){
+        Details userDetails = (Details) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userInfo = userDetails.getMember().toString();
+        return new ResponseEntity("user info  : " + userInfo ,HttpStatus.OK);
+    }
 
 
 

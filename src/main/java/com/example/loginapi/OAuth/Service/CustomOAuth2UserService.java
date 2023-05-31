@@ -30,6 +30,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
+        log.info(userRequest.toString().toString());
         OAuth2UserInfo oAuth2UserInfo =null;
 
         if(userRequest.getClientRegistration().getRegistrationId().equals("google")) {
@@ -49,18 +50,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             log.info("지원하지 않은 로그인 서비스 입니다.");
         }
 
+        // 소셜 로그인은 특별히 앞에 SocialEmail 추가
         String email = "SocialEmail" + oAuth2UserInfo.getEmail();
-        String provider = oAuth2UserInfo.getProvider(); //google , naver, facebook etc
         log.info("email :" + email);
+        log.info("oAuth2User : "+ oAuth2User.toString());
+        log.info("oAuth2Userattr : "+ oAuth2User.getAttributes().toString());
+
 
         // 이전에 가입한 이메일이 있는지 DB와 비교, 가입한 적 있는 경우
         Member member = memberRepository.findByEmail(email).orElse(null);
         // 가입한 적 없는 경우,
         if (member == null) {
-            member = saveUser(oAuth2UserInfo);
+            member = saveUser(oAuth2UserInfo, email);
             log.info("MEMber : null");
+        } else {
+            log.info("MEMber : null아님");
         }
-        log.info("MEMber : null 아님"+ member.toString());
+        log.info("MEMber : "+ member.toString());
+
 
 //            가입한 적 있는 경우 = (같은 이메일 존재)
 //            if (!member.getProvider().equals(provider)) { // 소셜로그인에서 같은 소셜 로그인으로 이미 가입된 경우,
@@ -73,7 +80,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     }
 
-    private Member saveUser(OAuth2UserInfo oAuth2UserInfo){
+    private Member saveUser(OAuth2UserInfo oAuth2UserInfo, String email){
         LocalDateTime regdate = LocalDateTime.now();
         String provider = oAuth2UserInfo.getProvider(); //google , naver, facebook etc
         String providerId = oAuth2UserInfo.getProviderId();
@@ -82,7 +89,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         Member member = Member.builder()
                 .name(name)
-                .email("SocialEmail" + oAuth2UserInfo.getEmail())
+                .email(email)
                 .role(role)
                 .provider(provider)
                 .provideId(providerId)

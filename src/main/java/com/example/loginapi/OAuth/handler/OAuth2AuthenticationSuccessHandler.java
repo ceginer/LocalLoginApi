@@ -43,12 +43,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         // redis 에 저장
         jwtAuthenticationProvider.setRefreshToken(String.valueOf(member.getMemberId()), refreshTokenString);
-
+//
         // AccessToken은 헤더의 Authorization 의 Barrer 뒤에 토큰을 붙혀 response 보내기
-        HttpHeaders httpHeaders = memberService.setHeaderAccessToken(accessTokenString);
-        response.addHeader("Authorization","Bearer " + httpHeaders);
+//        HttpHeaders httpHeaders = memberService.setHeaderAccessToken(accessTokenString);
+        response.addHeader("Authorization","Bearer " + accessTokenString);
         // RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
         memberService.setCookieRefreshToken(response, refreshTokenString);
+
+        response.sendRedirect("/index.html");
 
 
 //        if(oAuth2User.getRole() == Role.GUEST) {
