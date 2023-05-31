@@ -26,17 +26,18 @@ public class NaverUserInfo implements OAuth2UserInfo {
 
     @Override
     public String getName() {
-        return String.valueOf(attributes.get("name"));
+        return String.valueOf(attributes.get("nickname"));
     }
 
-//    @Override
-//    public String getImageUrl() {
-//        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
-//
-//        if (response == null) {
-//            return null;
-//        }
-//
+    @Override
+    public String getImageUrl() {
+
+        if (attributes.get("profile_image") != null) {
+            return String.valueOf(attributes.get("profile_image"));
+        }
+
 //        return (String) response.get("profile_image");
-//    }
+//        return String.valueOf(attributes.get("profile_image"));
+        return null;
+    }
 }

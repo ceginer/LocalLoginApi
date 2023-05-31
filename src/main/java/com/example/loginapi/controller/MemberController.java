@@ -187,8 +187,13 @@ public class MemberController {
             log.info(memberId);
 
             // Id와 일치하는 DB(redis)에 존재하는 key 삭제
+        try{
             memberService.checkAndDeleteRefresh(memberId);
             // 찾지 못할 시, RuntimeException 발생
+        } catch (RuntimeException e) {
+            new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        }
+
 
             // 클라이언트에 만료된 쿠키 전달 -> 쿠키삭제
             memberService.setExpireCookie(response,"RefreshToken");

@@ -30,7 +30,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        log.info(userRequest.toString().toString());
+        log.info(oAuth2User.toString());
         OAuth2UserInfo oAuth2UserInfo =null;
 
         if(userRequest.getClientRegistration().getRegistrationId().equals("google")) {
@@ -43,7 +43,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             oAuth2UserInfo = new NaverUserInfo((Map)oAuth2User.getAttributes().get("response"));
         }
         else if(userRequest.getClientRegistration().getRegistrationId().equals("kakao")) {
-            oAuth2UserInfo = new KakaoUserInfo((Map)oAuth2User.getAttributes().get("kakao_account"),
+            oAuth2UserInfo = new KakaoUserInfo((Map)oAuth2User.getAttributes().get("properties"),
                     String.valueOf(oAuth2User.getAttributes().get("id")));
         }
         else{
@@ -81,18 +81,26 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private Member saveUser(OAuth2UserInfo oAuth2UserInfo, String email){
-        LocalDateTime regdate = LocalDateTime.now();
+        // provider
         String provider = oAuth2UserInfo.getProvider(); //google , naver, facebook etc
+        // name
+        String name = provider + "_" + oAuth2UserInfo.getName();
+        // email 은 매개변수에
+        // providerId
         String providerId = oAuth2UserInfo.getProviderId();
-        String name = provider + "_" + providerId;
+        // 이미지 url
+        String picUrl = oAuth2UserInfo.getImageUrl();
+        // Role, regdate
         Role role = Role.USER;
+        LocalDateTime regdate = LocalDateTime.now();
 
         Member member = Member.builder()
+                .provider(provider)
                 .name(name)
                 .email(email)
-                .role(role)
-                .provider(provider)
                 .provideId(providerId)
+                .pic(picUrl)
+                .role(role)
                 .regdate(regdate)
                 .build();
 

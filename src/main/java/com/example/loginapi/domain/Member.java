@@ -56,11 +56,12 @@ public class Member {
     @Column(name = "provide_id")
     private String provideId; // 해당 OAuth 의 key(id)
     @Builder
-    public Member(String name, String password, String email, Role role, String provider, String provideId, LocalDateTime regdate) {
+    public Member(String name, String password, String email, Role role, String pic, String provider, String provideId, LocalDateTime regdate) {
         this.name = name;
         this.password = password;
         this.email = email;
         this.role = role;
+        this.pic = pic;
         this.provider = provider;
         this.provideId = provideId;
         this.regdate = regdate;

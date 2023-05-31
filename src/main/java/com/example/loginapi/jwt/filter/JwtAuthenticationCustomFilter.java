@@ -88,10 +88,12 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken token = provider.getAuthenticationToken(claimsRefresh);
 
                 //redis 에 refreshToken 저장
-                String ReissuedRefreshToken = provider.
-                        checkRefreshTokenAndReissuedToken(String.valueOf(claimsRefresh.get("memberID")), token);
-                // claims의 Id 가 DB(redis) 에 존재 X -> RuntimeException 에러
-//
+                try{
+                    String ReissuedRefreshToken = provider.
+                            checkRefreshTokenAndReissuedToken(String.valueOf(claimsRefresh.get("memberID")), token);
+                    // claims의 Id 가 DB(redis) 에 존재 X -> RuntimeException 에러
+
+
                     String ReissuedAccessToken = provider.createAccessToken(token);
 
                     // 인증정보가 SecurityContextHolder 에 저장되게 됨
@@ -99,10 +101,10 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
                             .setAuthentication(token); // 현재 요청에서 언제든지 인증정보를 꺼낼 수 있도록 해준다.
                     log.info("SecurityContextHolder" + SecurityContextHolder.getContext());
 
-                if( !requestURI.equals("/members/logout") ){
-                    // Filter에서는 바로 헤더의 Authorization의 Bearer 뒤에 AccessToken 보내기
-                    response.setHeader("Authorization","Bearer "+ReissuedAccessToken);
-                    log.info("ReissuedAccessToken : " + ReissuedAccessToken);
+                    if( !requestURI.equals("/members/logout") ){
+                        // Filter에서는 바로 헤더의 Authorization의 Bearer 뒤에 AccessToken 보내기
+                        response.setHeader("Authorization","Bearer "+ReissuedAccessToken);
+                        log.info("ReissuedAccessToken : " + ReissuedAccessToken);
 
 //                     RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
 //                    Cookie cookie = new Cookie("RefreshToken",ReissuedRefreshToken);
@@ -111,13 +113,17 @@ public class JwtAuthenticationCustomFilter extends OncePerRequestFilter {
 //                    cookie.setSecure(true); //-> https에서만 가능하게
 //                    response.addCookie(cookie);
 
-                    ResponseCookie refreshTokenCookie = ResponseCookie.from("RefreshToken", ReissuedRefreshToken)
-                            .path("/")
-                            .sameSite("None")
-                            .httpOnly(false)
-                            .secure(true)
-                            .build();
-                    response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+                        ResponseCookie refreshTokenCookie = ResponseCookie.from("RefreshToken", ReissuedRefreshToken)
+                                .path("/")
+                                .sameSite("None")
+                                .httpOnly(false)
+                                .secure(true)
+                                .build();
+                        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+                    }
+                } catch (RuntimeException exception){
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
                 }
             }
         }
