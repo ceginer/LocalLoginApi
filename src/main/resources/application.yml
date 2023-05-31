@@ -6,6 +6,8 @@ jwt:
   ## ??? gitignore? ???, secretKey? ?? ?.
 
 spring:
+  profiles:
+    include: oauth
   data:
     redis:
       host : localhost

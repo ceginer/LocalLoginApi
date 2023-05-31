@@ -117,10 +117,10 @@ public class MemberController {
 
         log.info("authentication 생성");
         if (authentication.isAuthenticated()) {
-            System.out.println("인증성공");
+            log.info("인증성공");
         } else {
             // 인증 실패
-            System.out.println("인증실패");
+            log.info("인증실패");
             // 에러 응답 처리
         }
         //모두 일치하면 access, refreshToken 발급
@@ -138,6 +138,7 @@ public class MemberController {
         Member member = userDetails.getMember();
 //        System.out.println(member.toString());
 
+        // redis 에 저장
         jwtAuthenticationProvider.setRefreshToken(String.valueOf(member.getMemberId()), refreshToken);
         // Id는 long 형태이므로
 

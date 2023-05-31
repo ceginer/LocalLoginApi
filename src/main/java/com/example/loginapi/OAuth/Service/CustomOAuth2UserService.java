@@ -51,14 +51,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String email = "SocialEmail" + oAuth2UserInfo.getEmail();
         String provider = oAuth2UserInfo.getProvider(); //google , naver, facebook etc
+        log.info("email :" + email);
 
         // 이전에 가입한 이메일이 있는지 DB와 비교, 가입한 적 있는 경우
         Member member = memberRepository.findByEmail(email).orElse(null);
-
         // 가입한 적 없는 경우,
         if (member == null) {
             member = saveUser(oAuth2UserInfo);
+            log.info("MEMber : null");
         }
+        log.info("MEMber : null 아님"+ member.toString());
 
 //            가입한 적 있는 경우 = (같은 이메일 존재)
 //            if (!member.getProvider().equals(provider)) { // 소셜로그인에서 같은 소셜 로그인으로 이미 가입된 경우,
@@ -80,7 +82,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         Member member = Member.builder()
                 .name(name)
-                .email(oAuth2UserInfo.getEmail())
+                .email("SocialEmail" + oAuth2UserInfo.getEmail())
                 .role(role)
                 .provider(provider)
                 .provideId(providerId)

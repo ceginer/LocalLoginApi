@@ -1,5 +1,8 @@
 package com.example.loginapi.config;
 
+import com.example.loginapi.OAuth.Service.CustomOAuth2UserService;
+import com.example.loginapi.OAuth.handler.OAuth2AuthenticationSuccessHandler;
+import com.example.loginapi.OAuth.handler.OAuth2LoginFailureHandler;
 import com.example.loginapi.jwt.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +25,16 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     private final AccessDeniedHandler jwtAccessDeniedHandler;
+    private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     // ManagerConfig 가 Manager 역할을 할 수 있게끔하고,
     // EntryPoint 가 에러가 일어났을 때, 어떤 것들을 할 수 있는지를 정해주도록 하기 위해서
     // -> 기본적인 세팅으로, 외워야 할 것들이 아닌 기본적인 방법들? 이라고 생각하면 될 듯
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
+         http
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 // 서버에서 session 허용 X -> stateless
 
@@ -68,14 +74,49 @@ public class SecurityConfig {
 
                 //-----------Oauth---------
                 .and()
-//                .oauth2Login()
+//                .oauth2Login(oauth2 -> oauth2
+//                        .authorizationEndpoint(authorization -> authorization
+//                                .baseUri("/oauth2/authorization")
+//                        )
+//                        .userInfoEndpoint(userInfo -> userInfo
+//                                .userService(customOAuth2UserService)
+//                        )
+//                        .successHandler(oAuth2SuccessHandler)
+//                        .failureHandler(oAuth2LoginFailureHandler)
+//                )
+                .oauth2Login()
 //                .authorizationRequestRepository(cookieAuthorizationRequestRepository)
 //                .and()
-//                .successHandler(oAuth2LoginSuccessHandler) // 동의하고 계속하기를 눌렀을 때 Handler 설정 , 여기선 안함
+                .successHandler(oAuth2SuccessHandler) // 동의하고 계속하기를 눌렀을 때 Handler 설정 , 여기선 안함
+                .failureHandler(oAuth2LoginFailureHandler) // 소셜 로그인 실패 시 핸들러 설정
+                .userInfoEndpoint().userService(customOAuth2UserService);
+         return http.build();// customUserService 설정
+
+//                .oauth2Login()
+//                .authorizationRequestRepository(cookieAuthorizationRequestRepository)
+//                .successHandler(oAuth2SuccessHandler) // 동의하고 계속하기를 눌렀을 때 Handler 설정 , 여기선 안함
+//                .failureHandler(oAuth2LoginFailureHandler) // 소셜 로그인 실패 시 핸들러 설정
+//                .userInfoEndpoint().userService(customOAuth2UserService)
+//                .and()// customUserService 설정
+//                .authorizationRequestRepository(cookieAuthorizationRequestRepository)
+//                .successHandler(oAuth2SuccessHandler) // 동의하고 계속하기를 눌렀을 때 Handler 설정 , 여기선 안함
 //                .failureHandler(oAuth2LoginFailureHandler) // 소셜 로그인 실패 시 핸들러 설정
 //                .userInfoEndpoint().userService(customOAuth2UserService)// customUserService 설정
-//                .and()
-                .build();
+//                .oauth2Login(oauth2 -> oauth2
+//                        .authorizationEndpoint(authorization -> authorization
+//                                .baseUri("/oauth2/authorization")
+//                                .authorizationRequestRepository(this.authorizationRequestRepository())
+//                        )
+//                        .redirectionEndpoint(redirection -> redirection
+//                                .baseUri("/*/oauth2/code/*")
+//                        )
+//                        .userInfoEndpoint(userInfo -> userInfo
+//                                .userService(this.oauth2UserService())
+//                        )
+//                        .successHandler(oAuth2AuthenticationSuccessHandler())
+//                        .failureHandler(oAuth2AuthenticationFailureHandler())
+//                );
+//                .build();
     }
 
     @Bean
