@@ -31,9 +31,12 @@ public class Member {
 
 //    @Builder.Default()
     @ColumnDefault("'https://res.cloudinary.com/dql4ynp7j/image/upload/v1683891387/mtkc8k2miuzbawzquxt5.jpg'")
+    // +++++++++++++여기에다가 RDS(Mysql) 에 default 값으로 {원하는 pic url} 지정해주어야 제대로 적용됨.
     // -> auto-ddl 로 자동 생성되었을 때, insert를 아무것도 하지 않아 null인 값을 default 값으로 설정
     // 즉, @DynamicInsert 가 있어야만 값을 받지 않은 부분에 대해 insert를 하지않고, 만약 insert로 null을 넣게 되면 @ColumnDefault 는 cannot be null 예외가 발생한다.
     private String pic;
+
+
 
     @JsonIgnore
     private String password;
