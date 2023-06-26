@@ -18,7 +18,7 @@ spring:
 
           kakao:
             client-id: 45a68bde77dfe64ec9adeaf3205576b8
-            client-secret: eeIEOSZfNjYlmhibm15TMlMe1cHAQvzI
+            client-secret: 4ddaKW1tDv1jHRfoxDzVjdoOep6mV4us
             redirect-uri: https://localhost:8080/login/oauth2/code/kakao # (설정한 redirect URI)
             client-authentication-method: POST
             authorization-grant-type: authorization_code

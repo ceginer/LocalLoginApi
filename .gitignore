@@ -38,4 +38,4 @@ appplication.yml
 ### VS Code ###
 .vscode/
 
-### application.yml ###
+application-oauth.yml

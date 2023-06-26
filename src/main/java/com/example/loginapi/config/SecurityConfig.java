@@ -14,7 +14,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Slf4j
 @Configuration
@@ -35,6 +40,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
          http
+                 // 먼저 cors 설정부터 해야한다. -> preflight 에 대해서 오류를 도출하지 않기 위해서
+//                 .cors()
+//                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 // 서버에서 session 허용 X -> stateless
 
@@ -60,7 +68,8 @@ public class SecurityConfig {
                         .requestMatchers("/members/login", "/members/refreshToken","/members/logout","/abc","/index.html","/error","/").permitAll()
                         .requestMatchers("/manager/**").hasRole("ADMIN")
                         .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
+//                        .anyRequest().authenticated()
                 )
 
                 //.requestMatchers("/manager로 시작하는 url") ADMIN 이 주어졌을 때 접근 허용 및 hasAnyRole 필요
@@ -126,4 +135,13 @@ public class SecurityConfig {
 
 
 
+//    @Bean
+//    CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(Arrays.asList("https://example.com"));
+//        configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
 }
