@@ -172,7 +172,7 @@ public class MemberController {
         return;
     }
 
-    @PostMapping("/logout") // Redis DB 삭제 = 끝
+    @GetMapping("/logout") // Redis DB 삭제 = 끝
     public ResponseEntity logout(HttpServletRequest request, HttpServletResponse response){
         log.info("logout 시작");
         // 저장된 인증객체를 SecurityContextHolder에서 꺼냄

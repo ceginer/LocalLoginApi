@@ -1,5 +1,7 @@
 package com.example.loginapi.config;
 
+//import com.example.loginapi.OAuth.OAtuthRequestRepsitory.CookieOAuth2AuthorizationRequestRepository;
+import com.example.loginapi.OAuth.OAtuthRequestRepsitory.CookieOAuth2AuthorizationRequestRepository;
 import com.example.loginapi.OAuth.Service.CustomOAuth2UserService;
 import com.example.loginapi.OAuth.handler.OAuth2AuthenticationSuccessHandler;
 import com.example.loginapi.OAuth.handler.OAuth2LoginFailureHandler;
@@ -33,6 +35,11 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
     private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
+
+    @Bean
+    public CookieOAuth2AuthorizationRequestRepository cookieOAuth2AuthorizationRequestRepository() {
+        return new CookieOAuth2AuthorizationRequestRepository();
+    }
 
     // ManagerConfig 가 Manager 역할을 할 수 있게끔하고,
     // EntryPoint 가 에러가 일어났을 때, 어떤 것들을 할 수 있는지를 정해주도록 하기 위해서
@@ -94,11 +101,19 @@ public class SecurityConfig {
 //                        .failureHandler(oAuth2LoginFailureHandler)
 //                )
                 .oauth2Login()
+                 .authorizationEndpoint()
+                 .baseUri("/oauth2/authorization") // 소셜 로그인 Url
+                 .authorizationRequestRepository(cookieOAuth2AuthorizationRequestRepository()) // 인증 요청을 쿠키에 저장하고 검색
 //                .authorizationRequestRepository(cookieAuthorizationRequestRepository)
-//                .and()
+            .and()
+                 .redirectionEndpoint()
+                 .baseUri("/*/oauth2/code/*")
+             .and()
+                 .userInfoEndpoint()
+                 .userService(customOAuth2UserService)
+             .and()
                 .successHandler(oAuth2SuccessHandler) // 동의하고 계속하기를 눌렀을 때 Handler 설정 , 여기선 안함
-                .failureHandler(oAuth2LoginFailureHandler) // 소셜 로그인 실패 시 핸들러 설정
-                .userInfoEndpoint().userService(customOAuth2UserService);
+                .failureHandler(oAuth2LoginFailureHandler); // 소셜 로그인 실패 시 핸들러 설정
          return http.build();// customUserService 설정
 
 //                .oauth2Login()
