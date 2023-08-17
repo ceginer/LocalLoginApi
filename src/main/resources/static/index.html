@@ -5,16 +5,45 @@
     <title>Title</title>
 </head>
 <body>
-<a href="/oauth2/authorization/kakao">Kakao Login</a><br>
-<a href="/oauth2/authorization/google">Google Login</a><br>
-<a href="/oauth2/authorization/naver">Naver Login</a><br>
+<!--<a href="/oauth2/authorization/kakao">Kakao Login</a><br>-->
+<!--<a href="/oauth2/authorization/google">Google Login</a><br>-->
+<!--<a href="/oauth2/authorization/naver">Naver Login</a><br>-->
+
+<form id="loginForm" action="/oauth/api/kakao" method="get">
+    <button type="submit">Kakao Login</button>
+</form>
+
+<form id="getUserForm" action="/oauth/api/naver" method="get">
+    <button type="submit">Naver Login</button>
+</form>
+
+<form id="logoutForm" action="/oauth/api/google" method="get">
+    <button type="submit">Google Login</button>
+</form>
 
 <div>
     <h1> 로그인 성공 이후</h1>
-    <a href="/members/test">Login Success?</a>
-
+    <button id="fetchButton">클릭하여 현재 로그인 상태 확인하기</button>
+    <pre id="dataContainer">
+    <!-- JSON 데이터를 여기에 표시합니다. -->
+</pre>
+</div>
+<div>
     <h2>로그아웃</h2>
     <a href=/members/logout>logout</a>
 </div>
+<script>
+    document.getElementById("fetchButton").addEventListener("click", function() {
+        fetch("/members/htmltest")
+            .then(response => response.json())
+            .then(data => {
+                var dataContainer = document.getElementById("dataContainer");
+                dataContainer.textContent = JSON.stringify(data, null, 4); // JSON 데이터를 들여쓰기하여 표시
+            })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+            });
+    });
+</script>
 </body>
 </html>

@@ -40,7 +40,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @RequestMapping("/members")
 
-public class MemberController {
+public class MemberController {//
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
@@ -101,15 +101,20 @@ public class MemberController {
                 = new UsernamePasswordAuthenticationToken(memberLoginDto.getEmail(), memberLoginDto.getPassword());
         // 로그인할 때는 email과 password로만 이루어진 token 만들기
         log.info("token 생성");
-        // DB에 id가 있는지, DB의 id와 pw가 일치하는지까지 모두 검사해줌
         // excepthon -> 추가바람
 
         // 검증되지 않은 토큰 = authentication
         Authentication authentication = token;
 
         // 토큰 검증
+        // DB에 id가 있는지, DB의 id와 pw가 일치하는지까지 검사해줌
+        // ( authenticate -> loadUserByUsername 에서 DB 에 ID 있는지 검사,
+        // ( 기존 authenticateManager 안에 있는 AuthenticationProvider의 authenticate() 메서드에서 제공되는 함수로 pw 틀린지 검사 )
+
         try{
             authentication = authenticationManagerBuilder.getObject().authenticate(token);
+            // -> loadUserByUsername 실행
+            // -> authentication = 인증된 authentication
         }
         catch (BadCredentialsException e){ // 일치하지 않는 Id, Pw
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -172,7 +177,7 @@ public class MemberController {
         return;
     }
 
-    @PostMapping("/logout") // Redis DB 삭제 = 끝
+    @GetMapping("/logout") // Redis DB 삭제 = 끝
     public ResponseEntity logout(HttpServletRequest request, HttpServletResponse response){
         log.info("logout 시작");
         // 저장된 인증객체를 SecurityContextHolder에서 꺼냄
@@ -210,6 +215,8 @@ public class MemberController {
         securityContext.setAuthentication(null);
         log.info(securityContext.toString());
         log.info(SecurityContextHolder.getContext().toString());
+
+
         return new ResponseEntity(HttpStatus.OK);
 //        "Logout Success",
     }
@@ -221,6 +228,10 @@ public class MemberController {
         return new ResponseEntity("user info  : " + userInfo ,HttpStatus.OK);
     }
 
-
-
+    @GetMapping("/htmltest")
+    public Member htmlTest(){
+        Details userDetails = (Details) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Member userInfo = userDetails.getMember();
+        return userInfo;
+    }
 }

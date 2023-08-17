@@ -83,22 +83,25 @@ public class SecurityConfig {
 
                 //-----------Oauth---------
                 .and()
-//                .oauth2Login(oauth2 -> oauth2
+                .oauth2Login(oauth2 -> oauth2
 //                        .authorizationEndpoint(authorization -> authorization
 //                                .baseUri("/oauth2/authorization")
 //                        )
-//                        .userInfoEndpoint(userInfo -> userInfo
-//                                .userService(customOAuth2UserService)
-//                        )
-//                        .successHandler(oAuth2SuccessHandler)
-//                        .failureHandler(oAuth2LoginFailureHandler)
-//                )
-                .oauth2Login()
+                        .authorizationEndpoint(authorization -> authorization
+                                .baseUri("/oauth/api")
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureHandler(oAuth2LoginFailureHandler)
+                );
+//                .oauth2Login()
 //                .authorizationRequestRepository(cookieAuthorizationRequestRepository)
 //                .and()
-                .successHandler(oAuth2SuccessHandler) // 동의하고 계속하기를 눌렀을 때 Handler 설정 , 여기선 안함
-                .failureHandler(oAuth2LoginFailureHandler) // 소셜 로그인 실패 시 핸들러 설정
-                .userInfoEndpoint().userService(customOAuth2UserService);
+//                .successHandler(oAuth2SuccessHandler) // 동의하고 계속하기를 눌렀을 때 Handler 설정 , 여기선 안함
+//                .failureHandler(oAuth2LoginFailureHandler) // 소셜 로그인 실패 시 핸들러 설정
+//                .userInfoEndpoint().userService(customOAuth2UserService);
          return http.build();// customUserService 설정
 
 //                .oauth2Login()

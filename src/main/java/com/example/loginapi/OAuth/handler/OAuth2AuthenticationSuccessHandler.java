@@ -50,7 +50,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // RefreshToken은 브라우저의 쿠키에 지정하여 보낸다.
         memberService.setCookieRefreshToken(response, refreshTokenString);
 
-        response.sendRedirect("/index.html");
+        response.sendRedirect("https://localhost:8080/oauth/test");
 
 
 //        if(oAuth2User.getRole() == Role.GUEST) {
